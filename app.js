@@ -5,8 +5,7 @@ import torrentAPI from './Torrent.js'
 const app = express()
 const port = 1111
 
-const torrent = await torrentAPI.search("Matrix", "All")
-// const torrent = torrentAPI.getUrl("All", "Matrix")
+const torrent = await torrentAPI.search("Matrix", "All", 1200)
 
 console.log(torrent)
 

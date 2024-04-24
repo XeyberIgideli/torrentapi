@@ -11,12 +11,21 @@ class torrentAPI {
         this.baseUrl = "https://www.1377x.to"
         this.searchUrl = "/category-search/{query}/{category}/1/"
     }
-    async search (query,category) {  
+    async search (query,category, size,sortBy = "seeds", sortOrder = "desc") {  
         // const url = `https://www.1377x.to/category-search/${encodeURIComponent(query)}/${category}/1/`;
         const url = this.getUrl(category,query) 
         try {
             const body = await cloudscraper.get(url) 
-            let torrents = this._parseTorrents(body) 
+            let torrents = this._parseTorrents(body,size, sortBy, sortOrder)
+
+            // if(sortBy) {
+            //     torrents = this.sortBy(torrents, sortBy)
+            // } 
+
+            if(size) {
+               torrents = this.filterBySize(torrents,size)
+            }
+
             return torrents
         } catch(err) {
             console.log(err)
@@ -27,20 +36,23 @@ class torrentAPI {
     _parseTorrents (body) {
         try {
             const $ = Cheerio.load(body)
-            const torrents = []
-         
+            let torrents = [] 
+            
             $('.table-list tbody tr').each((index, element) => {
              const torrentLink = this.baseUrl +  $(element).find('.name a').next().attr('href');
              const size = $(element).find('.size').text().trim();
-            //  let sizeInMB = parseFloat(size)
-            //  if(size.includes('GB')) {
-            //      sizeInMB *= 1024
-            //  }
+             const seeds = parseInt($(element).find('.seeds').text().trim());
+             let sizeInMB = parseFloat(size)
+
+             if(size.includes('GB')) {
+                 sizeInMB *= 1024
+             }
              
-            torrents.push(torrentLink)
-            
-             })  
-            return torrents
+             torrents.push({torrentLink, seeds, size:sizeInMB})
+
+             }) 
+
+                return torrents
 
             } catch(err) {
                 console.log(err)
@@ -63,6 +75,18 @@ class torrentAPI {
         return this.categories[catName]
     }
 
+    sortBy (torrents, field) {
+        return torrents.sort((a,b) => {
+            const aValue = a[field]
+            const bValue = b[field]
+            const comparison = aValue > bValue ? 1 : -1
+            return comparison
+        })
+    }
+
+    filterBySize (torrents,threshold) {
+        return torrents.filter((item) => item.size <= threshold)
+    }
 
 }
 
