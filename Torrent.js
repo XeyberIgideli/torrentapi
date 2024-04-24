@@ -10,9 +10,10 @@ class torrentAPI {
         this.defaultCategory = "All"
         this.baseUrl = "https://www.1377x.to"
         this.searchUrl = "/category-search/{query}/{category}/1/"
-    }
-    async search (query,category, size,sortBy = "seeds", sortOrder = "desc") {  
-        // const url = `https://www.1377x.to/category-search/${encodeURIComponent(query)}/${category}/1/`;
+        this.size
+    } 
+    async search (query,category, size = this.size,sortBy = "seeds", sortOrder = "desc") {  
+         
         const url = this.getUrl(category,query) 
         try {
             const body = await cloudscraper.get(url) 
@@ -59,8 +60,8 @@ class torrentAPI {
             }
     }
 
-    getUrl (category,query) {
-         let cat = this.getValueOfCategories(category)   
+    getUrl (category,query) { 
+         let cat = this.getValueOfCategories(category) 
          let url = this.baseUrl + (cat.startsWith("all:") ? cat.substr(4) : this.searchUrl)
 
          url = url.replace("{query}", query).replace("{category}", category)
@@ -68,10 +69,11 @@ class torrentAPI {
     }
 
     getValueOfCategories (catName) {
-        if(!catName) {
+        if(!catName || !this.categories[catName]) { 
+            this.size = catName
             return this.categories[this.defaultCategory]
         }
-
+    
         return this.categories[catName]
     }
 
