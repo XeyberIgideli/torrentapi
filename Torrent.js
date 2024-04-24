@@ -5,7 +5,16 @@ class torrentAPI {
     constructor () {
         this.categories = {
             All: "all:/search/{query}/1/",
-            Movies: "Movies"
+            Movies: "Movies",
+            TV: "TV",
+            Music: "Music",
+            Games: "Games",
+            Applications: "Applications",
+            Documentaries: "Documentaries",
+            Anime: "Anime",
+            Other: "Other",
+            XXX: "XXX"
+
         }
         this.defaultCategory = "All"
         this.baseUrl = "https://www.1377x.to"
@@ -19,9 +28,9 @@ class torrentAPI {
             const body = await cloudscraper.get(url) 
             let torrents = this._parseTorrents(body,size, sortBy, sortOrder)
 
-            // if(sortBy) {
-            //     torrents = this.sortBy(torrents, sortBy)
-            // } 
+            if(sortBy) {
+                torrents = this.sortBy(torrents, sortBy, sortOrder)
+            } 
 
             if(size) {
                torrents = this.filterBySize(torrents,size)
@@ -40,16 +49,28 @@ class torrentAPI {
             let torrents = [] 
             
             $('.table-list tbody tr').each((index, element) => {
+             const title = $(element).find('.name a').text().trim();
              const torrentLink = this.baseUrl +  $(element).find('.name a').next().attr('href');
+             // Sorts 
              const size = $(element).find('.size').text().trim();
              const seeds = parseInt($(element).find('.seeds').text().trim());
+             const leeches = parseInt($(element).find('.leeches').text().trim());
+             const time = $(element).find('.coll-date').text().trim();
+
              let sizeInMB = parseFloat(size)
 
              if(size.includes('GB')) {
                  sizeInMB *= 1024
              }
              
-             torrents.push({torrentLink, seeds, size:sizeInMB})
+             torrents.push({
+                torrentLink,
+                title,
+                seeds,
+                size:sizeInMB,
+                leeches,
+                time
+                })
 
              }) 
 
@@ -77,13 +98,9 @@ class torrentAPI {
         return this.categories[catName]
     }
 
-    sortBy (torrents, field) {
-        return torrents.sort((a,b) => {
-            const aValue = a[field]
-            const bValue = b[field]
-            const comparison = aValue > bValue ? 1 : -1
-            return comparison
-        })
+    sortBy (torrents, field, order) {
+        return torrents.sort((a, b) => (order === 'desc' ? b[field] - a[field] : a[field] - b[field]));
+
     }
 
     filterBySize (torrents,threshold) {
