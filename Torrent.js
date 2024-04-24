@@ -88,6 +88,27 @@ class torrentAPI {
         return torrents.filter((item) => item.size <= threshold)
     }
 
+    async getTorrentDetails (torrent) {
+        try {
+            const body = await cloudscraper.get(torrent) 
+            return body
+        } catch (err) {
+            console.log(err)
+        }
+    }
+
+    async getMagnet (torrent) {
+        try {
+            const body = await this.getTorrentDetails(torrent.torrentLink)
+            const $ =  Cheerio.load(body)
+
+            const magnet = $('a.torrentdown1').attr('href')
+            return magnet
+        } catch(err) {
+            console.log(err)
+        }
+    }
+
 }
 
 const search = new torrentAPI()
