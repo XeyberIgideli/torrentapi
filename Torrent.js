@@ -4,7 +4,7 @@ import Cheerio from 'cheerio'
 class torrentAPI {
     constructor () {
         this.categories = {
-            All: "all:/search/{query}/1/",
+            All: "all:/search/{query}/{limit}/",
             Movies: "Movies",
             TV: "TV",
             Music: "Music",
@@ -18,16 +18,32 @@ class torrentAPI {
         }
         this.defaultCategory = "All"
         this.baseUrl = "https://www.1377x.to"
-        this.searchUrl = "/category-search/{query}/{category}/1/"
+        this.searchUrl = "/category-search/{query}/{category}/{limit}/"
         this.size
+        this.resultsPerPage = 20
     } 
-    async search (query,category, size = this.size,sortBy = "seeds", sortOrder = "desc") {  
-         
-        const url = this.getUrl(category,query) 
-        try {
-            const body = await cloudscraper.get(url) 
-            let torrents = this._parseTorrents(body,size, sortBy, sortOrder)
 
+    async search (args) {  
+        let {query, category, size, limit, sortBy, sortOrder} = args
+
+        if(!query) {
+            throw new Error("No query provided")
+        }
+
+        if(!limit) {
+            limit = this.resultsPerPage
+        } 
+
+        const totalPage = Math.ceil(limit / this.resultsPerPage) 
+
+        try {
+            let newbody 
+            for(let i = 1; i <= totalPage; i++) {
+                newbody += await cloudscraper.get(this.getUrl(category,query, i) )
+
+            }  
+            let torrents = this.limitResults(this._parseTorrents(newbody,size, sortBy, sortOrder), limit)
+            
             if(sortBy) {
                 torrents = this.sortBy(torrents, sortBy, sortOrder)
             } 
@@ -81,11 +97,11 @@ class torrentAPI {
             }
     }
 
-    getUrl (category,query) { 
+    getUrl (category,query, limitPage) { 
          let cat = this.getValueOfCategories(category) 
          let url = this.baseUrl + (cat.startsWith("all:") ? cat.substr(4) : this.searchUrl)
 
-         url = url.replace("{query}", query).replace("{category}", category)
+         url = url.replace("{query}", query).replace("{category}", category).replace("{limit}", limitPage)
          return url
     }
 
@@ -126,6 +142,10 @@ class torrentAPI {
         } catch(err) {
             console.log(err)
         }
+    }
+
+    limitResults (torrents, limit) {
+        return torrents.slice(0, limit)
     }
 
 }
