@@ -1,0 +1,13 @@
+const torrentSource = require('./torrentSource')  
+const initApi = require('./initApi')
+const path = require('path')
+
+const inittedTorrent = initApi(path.join(__dirname,'./sources'))
+const got = inittedTorrent.setSource("1377x")
+// const test = new torrentSource()  
+// console.log(test.loadSource("sources")) 
+// console.log(test.loadSources("sources"))
+const torrents = got.search({query:"Matrix", category: "Movies", limit: 3}) 
+// console.log(torrents)  
+// console.log(torrentAPI.pageCount(30, 20))
+// console.log(await torrentAPI.getMagnet(torrents[0])) 

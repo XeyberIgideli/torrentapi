@@ -1,11 +1,11 @@
 {
   "name": "torrentapi",
   "version": "1.0.0",
-  "type": "module",
+  "type": "commonjs",
   "description": "Unofficial apis for torrent search sites",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
-    "dev": "nodemon app.js"
+    "dev": "nodemon index.js"
   },
   "author": "Igidali",
   "license": "ISC",
