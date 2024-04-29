@@ -1,18 +1,19 @@
-const torrentSource = require('./torrentSource') 
-const path = require('path')
-const {readdirSync} = require('fs')
+import path from 'path'
+import torrentSource from './torrentSource.js'
+import {readdirSync} from 'fs'
 
 class sourceManager {
     constructor() {
         this.sourceDir = "" 
     }
-      setSource(sourceName) {
-        const param = this.importSource(sourceName)
+      async setSource(sourceName) {
+        const param = await this.importSource(sourceName) 
         return this.instantiateSource(param)
       } 
       
-      instantiateSource (Source) {  
-        return new torrentSource(new Source())
+     instantiateSource (Source) {   
+      const sourceClass = Source.default
+      return new torrentSource(new sourceClass())
       }
        
       loadSources (srcDir) { 
@@ -24,10 +25,12 @@ class sourceManager {
         return sourcePaths
       }
       
-      importSource (sourceName) {  
-        return require(path.join(this.sourceDir, sourceName + ".js"))
+     async importSource (sourceName) {  
+        const modulePath = 'file://' + path.resolve(path.join(this.sourceDir, sourceName + ".js"))
+        const importModule = await import(modulePath)
+        return importModule
       }
     
 }
 
-module.exports = sourceManager
+export default sourceManager

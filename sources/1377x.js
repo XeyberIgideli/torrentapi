@@ -1,4 +1,5 @@
-const TorrentSource = require("../torrentSource.js")
+// const TorrentSource = require("../torrentSource.js")
+import TorrentSource from '../torrentSource.js'
 
 class _1377x extends TorrentSource {
   constructor() {
@@ -30,4 +31,4 @@ class _1377x extends TorrentSource {
 
 
 
-module.exports = _1377x
+export default _1377x

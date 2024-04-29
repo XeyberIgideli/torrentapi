@@ -1,4 +1,4 @@
-const sourceManager = require('./sourceManager')
+import sourceManager from "./sourceManager.js"
 
 function initApi (sourceDir) {
     let srcManager = new sourceManager() 
@@ -6,4 +6,4 @@ function initApi (sourceDir) {
     return srcManager
 }
 
-module.exports = initApi
+export default initApi

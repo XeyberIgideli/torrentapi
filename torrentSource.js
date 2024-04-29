@@ -1,10 +1,6 @@
-// import path from 'path'
-// import {readdirSync} from 'fs'
-const path = require('path')
-const {readdirSync} = require('fs')
-// import { load } from 'cheerio';
-const cloudscraper = require('cloudscraper')
-const Cheerio = require('cheerio') 
+import Cheerio from 'cheerio'
+import cloudscraper from 'cloudscraper'
+
 class torrentSource { 
   constructor(source) { 
     this.startSource(source); 
@@ -30,7 +26,6 @@ class torrentSource {
       resultsPerPage: 20,
     } 
     Object.assign(this, source)   
-    // console.log(this)
   } 
   async search(args) {
     let { query, category, size, limit, sortBy, sortOrder } = args; 
@@ -59,8 +54,7 @@ class torrentSource {
 
       if (size) {
         torrents = this.filterBySize(torrents, size);
-      }
-      console.log(torrents)
+      } 
       return torrents;
     } catch (err) {
       console.log(err);
@@ -161,4 +155,4 @@ class torrentSource {
   }
 }
 
-module.exports =torrentSource;
+export default torrentSource;
