@@ -1,7 +1,7 @@
 import Cheerio from "cheerio";
 import cloudscraper from "cloudscraper";
 import bencode from 'bencode'
-import toMagnetURI from "./Helper.js";
+import {MagnetToTorrent, toMagnetURI} from "./Helper.js";
 class torrentSource {
   constructor(source) {
     this.startSource(source)
@@ -58,14 +58,12 @@ class torrentSource {
 
       $(".table-list tbody tr").each((index, element) => {
         const title = $(element).find(".name a").text().trim();
-        const torrentLink =
-          this.baseUrl + $(element).find(".name a").next().attr("href");
+        const torrentLink = this.baseUrl + $(element).find(".name a").next().attr("href");
         // Sorts
         const size = $(element).find(".size").text().trim();
         const seeds = parseInt($(element).find(".seeds").text().trim());
         const leeches = parseInt($(element).find(".leeches").text().trim());
         const time = $(element).find(".coll-date").text().trim();
-
         let sizeInMB = parseFloat(size);
 
         if (size.includes("GB")) {
@@ -79,6 +77,7 @@ class torrentSource {
           size: sizeInMB,
           leeches,
           time,
+          
         });
       });
 
@@ -121,8 +120,11 @@ class torrentSource {
 
   async getTorrentDetails(torrent) {
     try {
-      const body = await cloudscraper.get(torrent);
-      return body;
+      const body = await cloudscraper.get(torrent)
+      const $ = Cheerio.load(body)
+      const infoHash = $('.infohash-box span').text().trim()
+      const magnet = $("a.torrentdown1").attr("href")
+      return {infoHash, magnet}
     } catch (err) {
       console.log(err);
     }
@@ -137,21 +139,21 @@ class torrentSource {
         return magnets
       }
 
-      const body = await this.getTorrentDetails(torrent.torrentLink);
-      const $ = Cheerio.load(body);
-
-      const magnet = $("a.torrentdown1").attr("href");
-      return magnet;
+      const magnet = (await this.getTorrentDetails(torr.torrentLink)).magnet
+     
+      return magnet
     } catch (err) {
       console.log(err) 
     }
   }
 
-  getTorrent (torrent) {
+  async getTorrent (torrent, path) {
     if(this.api) {
       return this.torrents
     }
     this.torrents = []
+    const magnetUri = await this.getMagnet(torrent)
+    return MagnetToTorrent(magnetUri, path)
   }
 
   async apiCrawler (category, query, limit) {
@@ -165,8 +167,8 @@ class torrentSource {
   }
 
   limitResults(torrents, limit) {
-    return torrents.slice(0, limit);
+    return torrents.slice(0, limit)
   }
 }
 
-export default torrentSource;
+export default torrentSource
