@@ -1,11 +1,12 @@
 import TorrentSource from '../torrentSource.js'
 
-class _1377x extends TorrentSource {
+class Yts extends TorrentSource {
   constructor() {
     const source = {
-      name: "1377x",
+      name: "Yts",
+      api: true,
       categories: {
-          All: "all:/search/{query}/{limit}/",
+          All: "",
           Movies: "Movies",
           TV: "TV",
           Music: "Music",
@@ -17,8 +18,8 @@ class _1377x extends TorrentSource {
           XXX: "XXX",
         },
         defaultCategory: "All",
-        baseUrl: "https://www.1377x.to",
-        searchUrl: "/category-search/{query}/{category}/{limit}/",
+        baseUrl: "https://yts.mx/",
+        searchUrl: "/api/v2/list_movies.json?query_term={query}&limit={limit}",
         size:1200,
         resultsPerPage: 20
         
@@ -26,8 +27,9 @@ class _1377x extends TorrentSource {
 
     super(source) 
   }
+
 }
 
 
 
-export default _1377x
+export default Yts

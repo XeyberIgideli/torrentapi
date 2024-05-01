@@ -1,49 +1,39 @@
-import Cheerio from 'cheerio'
-import cloudscraper from 'cloudscraper'
-
-class torrentSource { 
-  constructor(source) { 
-    this.startSource(source); 
+import Cheerio from "cheerio";
+import cloudscraper from "cloudscraper";
+import bencode from 'bencode'
+import toMagnetURI from "./Helper.js";
+class torrentSource {
+  constructor(source) {
+    this.startSource(source)
+    this.torrents = []
+ 
   }
-  startSource(source) {
-    const defaultSource = {
-      categories: {
-        All: "",
-        Movies: "",
-        TV: "",
-        Music: "",
-        Games: "",
-        Applications: "",
-        Documentaries: "",
-        Anime: "",
-        Other: "", 
-        XXX: "",
-      },
-      defaultCategory: "",
-      baseUrl: "",
-      searchUrl: "",
-      size: 1200,
-      resultsPerPage: 20,
-    } 
-    Object.assign(this, source)   
+  startSource(source) {  
+    Object.assign(this, source)    
   } 
-  async search(args) {
-    let { query, category, size, limit, sortBy, sortOrder } = args; 
+  async search(args) { 
+    
+    let { query, category, size, limit, sortBy, sortOrder } = args 
+
     if (!query) {
       throw new Error("No query provided");
     }
 
     if (!limit) {
       limit = this.resultsPerPage;
-    } 
+    }
+
+    if(this.api) {
+        return this.apiCrawler(category, query, limit)
+    }
+    
     const totalPage = Math.ceil(limit / this.resultsPerPage);
 
     try {
       let newbody;
       for (let i = 1; i <= totalPage; i++) {
         newbody += await cloudscraper.get(this.getUrl(category, query, i));
-      }   
-      // console.log(await this._parseTorrents(newbody, size, sortBy, sortOrder))
+      }
       let torrents = this.limitResults(
         await this._parseTorrents(newbody, size, sortBy, sortOrder),
         limit
@@ -54,7 +44,7 @@ class torrentSource {
 
       if (size) {
         torrents = this.filterBySize(torrents, size);
-      } 
+      }
       return torrents;
     } catch (err) {
       console.log(err);
@@ -98,8 +88,8 @@ class torrentSource {
     }
   }
 
-  getUrl(category, query, limitPage) {  
-    let cat = this.getValueOfCategories(category); 
+  getUrl(category, query, limitPage) {
+    let cat = this.getValueOfCategories(category);
     let url =
       this.baseUrl + (cat.startsWith("all:") ? cat.substr(4) : this.searchUrl);
 
@@ -115,7 +105,7 @@ class torrentSource {
       this.size = catName;
 
       return this.categories[this.defaultCategory];
-    } 
+    }
     return this.categories[catName];
   }
 
@@ -138,19 +128,43 @@ class torrentSource {
     }
   }
 
-  async getMagnet(torrent) {
-    try {
+  async getMagnet(torr) {
+    try {  
+      if(this.api) {
+        const magnets = await Promise.all(this.torrents.map(torrent => {
+          return toMagnetURI(torrent.url, torrent.hash, torr.title_long)
+        }))
+        return magnets
+      }
+
       const body = await this.getTorrentDetails(torrent.torrentLink);
       const $ = Cheerio.load(body);
 
       const magnet = $("a.torrentdown1").attr("href");
       return magnet;
     } catch (err) {
-      console.log(err);
+      console.log(err) 
     }
   }
 
-  limitResults(torrents, limit) {  
+  getTorrent (torrent) {
+    if(this.api) {
+      return this.torrents
+    }
+    this.torrents = []
+  }
+
+  async apiCrawler (category, query, limit) {
+    const url = this.getUrl(category, query, limit)
+    const response = await fetch(url, {method: "GET"})
+    const data = (await response.json()).data
+    const torrents = data.movies[0].torrents
+    this.torrents = torrents
+    
+    return data.movies
+  }
+
+  limitResults(torrents, limit) {
     return torrents.slice(0, limit);
   }
 }

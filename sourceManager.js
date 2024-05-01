@@ -1,12 +1,15 @@
 import path from 'path'
 import torrentSource from './torrentSource.js'
-import {readdirSync} from 'fs'
+import {readdirSync, existsSync} from 'fs'
 
 class sourceManager {
     constructor() {
         this.sourceDir = "" 
     }
       async setSource(sourceName) {
+        if(!sourceName) {
+          throw new Error("No source provided!")
+        } 
         const param = await this.importSource(sourceName) 
         return this.instantiateSource(param)
       } 
@@ -26,8 +29,13 @@ class sourceManager {
       }
       
      async importSource (sourceName) {  
-        const modulePath = 'file://' + path.resolve(path.join(this.sourceDir, sourceName + ".js"))
-        const importModule = await import(modulePath)
+        const modulePath = path.resolve(path.join(this.sourceDir, sourceName + ".js")) 
+        const moduleFilePath = 'file://' + path.resolve(path.join(this.sourceDir, sourceName + ".js"))
+         
+        if(!existsSync(modulePath)) {
+          throw new Error("Provided source is not exist!")
+        }
+        const importModule = await import(moduleFilePath)
         return importModule
       }
     
