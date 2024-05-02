@@ -1,4 +1,4 @@
-import sourceManager from "./sourceManager.js"
+import sourceManager from "./lib/sourceManager.js"
 
 function initApi (sourceDir) {
     let srcManager = new sourceManager() 
