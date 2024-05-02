@@ -4,11 +4,11 @@ import bencode from 'bencode'
 import {MagnetToTorrent, toMagnetURI} from "./Helper.js";
 class torrentSource {
   constructor(source) {
-    this.startSource(source)
+    this.#startSource(source)
     this.torrents = []
  
   }
-  startSource(source) {  
+  #startSource(source) {  
     Object.assign(this, source)    
   } 
   async search(args) { 
@@ -24,26 +24,27 @@ class torrentSource {
     }
 
     if(this.api) {
-        return this.apiCrawler(category, query, limit)
+        return this.#apiCrawler(category, query, limit)
     }
     
-    const totalPage = Math.ceil(limit / this.resultsPerPage);
+    const totalPage = Math.ceil(limit / this.resultsPerPage)
 
     try {
+      
       let newbody;
       for (let i = 1; i <= totalPage; i++) {
-        newbody += await cloudscraper.get(this.getUrl(category, query, i));
+        newbody += await cloudscraper.get(this.#getUrl(category, query, i))
       }
-      let torrents = this.limitResults(
-        await this._parseTorrents(newbody, size, sortBy, sortOrder),
+      let torrents = this.#limitResults(
+        await this.#_parseTorrents(newbody, size, sortBy, sortOrder),
         limit
       );
       if (sortBy) {
-        torrents = this.sortBy(torrents, sortBy, sortOrder);
+        torrents = this.#sortBy(torrents, sortBy, sortOrder);
       }
 
       if (size) {
-        torrents = this.filterBySize(torrents, size);
+        torrents = this.#filterBySize(torrents, size);
       }
       return torrents;
     } catch (err) {
@@ -51,19 +52,18 @@ class torrentSource {
     }
   }
 
-  async _parseTorrents(body) {
+  async #_parseTorrents(body) {
     try {
       const $ = Cheerio.load(body);
-      let torrents = [];
-
+      let torrents = []; 
       $(".table-list tbody tr").each((index, element) => {
-        const title = $(element).find(".name a").text().trim();
-        const torrentLink = this.baseUrl + $(element).find(".name a").next().attr("href");
+        const title = $(element).find(this.itemsSelector.title).text().trim();
+        const torrentLink = this.baseUrl + $(element).find(this.itemsSelector.title).next().attr("href");
         // Sorts
-        const size = $(element).find(".size").text().trim();
-        const seeds = parseInt($(element).find(".seeds").text().trim());
-        const leeches = parseInt($(element).find(".leeches").text().trim());
-        const time = $(element).find(".coll-date").text().trim();
+        const size = $(element).find(this.itemsSelector.size).text().trim();
+        const seeds = parseInt($(element).find(this.itemsSelector.seeds).text().trim());
+        const leeches = parseInt($(element).find(this.itemsSelector.leeches).text().trim());
+        const time = $(element).find(this.itemsSelector.time).text().trim();
         let sizeInMB = parseFloat(size);
 
         if (size.includes("GB")) {
@@ -87,8 +87,8 @@ class torrentSource {
     }
   }
 
-  getUrl(category, query, limitPage) {
-    let cat = this.getValueOfCategories(category);
+  #getUrl(category, query, limitPage) {
+    let cat = this.#getValueOfCategories(category);
     let url =
       this.baseUrl + (cat.startsWith("all:") ? cat.substr(4) : this.searchUrl);
 
@@ -99,7 +99,7 @@ class torrentSource {
     return url;
   }
 
-  getValueOfCategories(catName) {
+ #getValueOfCategories(catName) {
     if (!catName || !this.categories[catName]) {
       this.size = catName;
 
@@ -108,13 +108,13 @@ class torrentSource {
     return this.categories[catName];
   }
 
-  sortBy(torrents, field, order) {
+  #sortBy(torrents, field, order) {
     return torrents.sort((a, b) =>
       order === "desc" ? b[field] - a[field] : a[field] - b[field]
     );
   }
 
-  filterBySize(torrents, threshold) {
+  #filterBySize(torrents, threshold) {
     return torrents.filter((item) => item.size <= threshold);
   }
 
@@ -122,8 +122,8 @@ class torrentSource {
     try {
       const body = await cloudscraper.get(torrent)
       const $ = Cheerio.load(body)
-      const infoHash = $('.infohash-box span').text().trim()
-      const magnet = $("a.torrentdown1").attr("href")
+      const infoHash = $(this.torrentDetailsSelector.infoHash).text().trim()
+      const magnet = $(this.torrentDetailsSelector.magnet).attr("href")
       return {infoHash, magnet}
     } catch (err) {
       console.log(err);
@@ -156,7 +156,7 @@ class torrentSource {
     return MagnetToTorrent(magnetUri, path)
   }
 
-  async apiCrawler (category, query, limit) {
+  async #apiCrawler (category, query, limit) {
     const url = this.getUrl(category, query, limit)
     const response = await fetch(url, {method: "GET"})
     const data = (await response.json()).data
@@ -166,7 +166,7 @@ class torrentSource {
     return data.movies
   }
 
-  limitResults(torrents, limit) {
+  #limitResults(torrents, limit) {
     return torrents.slice(0, limit)
   }
 }

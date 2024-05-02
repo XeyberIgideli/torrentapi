@@ -6,20 +6,20 @@ class sourceManager {
     constructor() {
         this.sourceDir = "" 
     }
-      async setSource(sourceName) {
+    async setSource(sourceName) {
         if(!sourceName) {
           throw new Error("No source provided!")
         } 
-        const param = await this.importSource(sourceName) 
-        return this.instantiateSource(param)
+        const param = await this.#importSource(sourceName) 
+        return this.#instantiateSource(param)
       } 
       
-     instantiateSource (Source) {   
+    #instantiateSource (Source) {   
       const sourceClass = Source.default
       return new torrentSource(new sourceClass())
       }
        
-      loadSources (srcDir) { 
+    loadSources (srcDir) { 
         this.sourceDir = srcDir  
         const sourcePaths =  readdirSync(path.resolve(srcDir))
         .filter(item => item.endsWith('.js'))
@@ -28,7 +28,7 @@ class sourceManager {
         return sourcePaths
       }
       
-     async importSource (sourceName) {  
+    async #importSource (sourceName) {  
         const modulePath = path.resolve(path.join(this.sourceDir, sourceName + ".js")) 
         const moduleFilePath = 'file://' + path.resolve(path.join(this.sourceDir, sourceName + ".js"))
          

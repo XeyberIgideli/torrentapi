@@ -20,8 +20,19 @@ class _1377x extends TorrentSource {
         baseUrl: "https://www.1377x.to",
         searchUrl: "/category-search/{query}/{category}/{limit}/",
         size:1200,
-        resultsPerPage: 20
-        
+        resultsPerPage: 20,
+        wrapperSelector: ".table-list tbody tr",
+        itemsSelector: {
+          title: ".name a", 
+          time: ".coll-date",
+          size: ".size",
+          seeds: ".seeds",
+          leeches: ".leeches",
+        },
+        torrentDetailsSelector: {
+          infoHash: ".infohash-box span",
+          magnet: "a.torrentdown1"
+        }
      }
 
     super(source) 
