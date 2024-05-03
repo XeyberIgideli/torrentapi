@@ -1,4 +1,4 @@
-import TorrentSource from '../torrentSource.js'
+import TorrentSource from '../lib/torrentSource.js'
 
 class _1377x extends TorrentSource {
   constructor() {
