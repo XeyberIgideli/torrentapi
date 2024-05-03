@@ -1,6 +1,6 @@
 {
   "name": "@pardaillan/torrent-api",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "description": "Torrent scraper from popular torrent sources (1377x, Yts etc)",
   "main": "index.js",
